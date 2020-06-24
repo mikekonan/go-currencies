@@ -1,0 +1,15 @@
+{
+  "name": "generator",
+  "version": "1.0.0",
+  "description": "go-currencies code generator",
+  "main": "generator.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "MikeKonan",
+  "license": "MIT",
+  "dependencies": {
+    "node-html-parser": "^1.2.20",
+    "sync-request": "^6.1.0"
+  }
+}
