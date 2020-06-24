@@ -129,20 +129,24 @@ var currenciesByCurrency = map[string]currency{
   ${render(currenciesByCurrencyMap)},
 }
 
-func ByCode(code string) currency {
-	return currenciesByCode[code]
+func ByCode(code string) (c currency, ok bool) {
+	c, ok = currenciesByCode[code]
+	return
 }
 
-func ByCurrency(currency string) currency {
-	return currenciesByCurrency[currency]
+func ByCurrency(currency string) (c currency, ok bool) {
+	c, ok = currenciesByCurrency[currency]
+	return
 }
 
-func ByNumber(number string) currency {
-	return currenciesByNumber[number]
+func ByNumber(number string) (c currency, ok bool) {
+	c, ok = currenciesByNumber[number]
+	return
 }
 
-func ByCountry(number string) currency {
-	return currenciesByCountry[number]
+func ByCountry(number string) (c currency, ok bool) {
+	c, ok = currenciesByCountry[number]
+	return
 }
 `;
 
