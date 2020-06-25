@@ -4,7 +4,8 @@
   "description": "go-currencies code generator",
   "main": "generator.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generate": "node generator.js > ../currency.go"
   },
   "author": "MikeKonan",
   "license": "MIT",
