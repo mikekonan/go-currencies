@@ -113,6 +113,10 @@ func (c Country) Validate(_ interface{}) error {
 	return nil
 }
 
+func (c Country) IsSet() bool {
+	return len(string(c)) > 0
+}
+
 type Currency string
 
 func (c Currency) Validate(_ interface{}) error {
@@ -121,6 +125,10 @@ func (c Currency) Validate(_ interface{}) error {
 	}
 
 	return nil
+}
+
+func (c Currency) IsSet() bool {
+	return len(string(c)) > 0
 }
 
 type Code string
@@ -133,6 +141,10 @@ func (c Code) Validate(_ interface{}) error {
 	return nil
 }
 
+func (c Code) IsSet() bool {
+	return len(string(c)) > 0
+}
+
 type Number string
 
 func (n Number) Validate(_ interface{}) error {
@@ -143,6 +155,10 @@ func (n Number) Validate(_ interface{}) error {
 	return nil
 }
 
+func (n Number) IsSet() bool {
+	return len(string(n)) > 0
+}
+
 type currency struct {
 	countries []Country
 	currency  Currency
@@ -150,8 +166,8 @@ type currency struct {
 	number    Number
 }
 
-func (c currency) Currency() Currency     { return c.currency }
-func (c currency) Code() Code         { return c.code }
+func (c currency) Currency() Currency   { return c.currency }
+func (c currency) Code() Code           { return c.code }
 func (c currency) Number() Number       { return c.number }
 func (c currency) Countries() []Country { return c.countries }
 
