@@ -88,7 +88,7 @@ currencies.forEach((c) => {
 let render = (currenciesMap) => {
   return Object.keys(currenciesMap).map(
     (key) => `\`${key}\`: {
-      countries:  []string{${currenciesMap[key].countries
+      countries:  []Country{${currenciesMap[key].countries
         .map((country) => `\`${country}\``)
         .join(", ")}},
       currency:   \`${currenciesMap[key].currency}\`,
@@ -101,17 +101,59 @@ let render = (currenciesMap) => {
 
 let template = `package currency
 
-type currency struct {
-	countries  []string
-	currency   string
-	code       string
-	number     string
+import "fmt"
+
+type Country string
+
+func (c Country) Validate(_ interface{}) error {
+	if _, ok := ByCountry(string(c)); !ok {
+		return fmt.Errorf("'%s' is not valid ISO-4217 country", c)
+	}
+
+	return nil
 }
 
-func (c currency) Currency() string { return c.currency }
-func (c currency) Code() string     { return c.code }
-func (c currency) Number() string   { return c.number }
-func (c currency) Countries() []string  { return c.countries }
+type Currency string
+
+func (c Currency) Validate(_ interface{}) error {
+	if _, ok := ByCurrency(string(c)); !ok {
+		return fmt.Errorf("'%s' is not valid ISO-4217 currency", c)
+	}
+
+	return nil
+}
+
+type Code string
+
+func (c Code) Validate(_ interface{}) error {
+	if _, ok := ByCode(string(c)); !ok {
+		return fmt.Errorf("'%s' is not valid ISO-4217 code", c)
+	}
+
+	return nil
+}
+
+type Number string
+
+func (n Number) Validate(_ interface{}) error {
+	if _, ok := ByNumber(string(n)); !ok {
+		return fmt.Errorf("'%s' is not valid ISO-4217 number", n)
+	}
+
+	return nil
+}
+
+type currency struct {
+	countries []Country
+	currency  Currency
+	code      Code
+	number    Number
+}
+
+func (c currency) Currency() Currency     { return c.currency }
+func (c currency) Code() Code         { return c.code }
+func (c currency) Number() Number       { return c.number }
+func (c currency) Countries() []Country { return c.countries }
 
 var currenciesByCode = map[string]currency{
     ${render(currenciesByCodeMap)},
