@@ -1,105 +1,109 @@
-const request = require("sync-request");
-const htmlParser = require("node-html-parser");
+const request = require('sync-request');
+const xml2js = require('xml2js');
 
-let resp = request("GET", "https://www.iban.com/currency-codes");
+let resp = request('GET', 'https://www.currency-iso.org/dam/downloads/lists/list_one.xml');
 
-let currencies = htmlParser
-  .parse(resp.getBody("utf-8"))
-  .querySelector("div.flat-row.pad-top20px.pad-bottom70px")
-  .querySelector("div")
-  .querySelector("div")
-  .querySelector("div")
-  .querySelector("div")
-  .querySelector("table")
-  .querySelector("tbody")
-  .querySelectorAll("tr")
-  .map((row) => {
-    return {
-      country: row.childNodes[1].text.replace(/  +/g, " "),
-      currency: row.childNodes[3].text.replace(/  +/g, " "),
-      code: row.childNodes[5].text.replace(/  +/g, " "),
-      number: row.childNodes[7].text.replace(/  +/g, " "),
-    };
-  });
+if (resp.statusCode !== 200) {
+    console.log(`unexpected status code - '${resp.statusCode}'`)
+    os.exit(1)
+}
 
-let currenciesByCodeMap = {};
-let currenciesByNumberMap = {};
-let currenciesByCountryMap = {};
-let currenciesByCurrencyMap = {};
 
-currencies.forEach((c) => {
-  if (!!!currenciesByCodeMap[c.code]) {
-    currenciesByCodeMap[c.code] = {
-      countries: [c.country],
-      currency: c.currency,
-      code: c.code,
-      number: c.number,
-    };
+let render = (currencies) => {
+    let currenciesByCodeMap = {};
+    let currenciesByNumberMap = {};
+    let currenciesByCountryMap = {};
+    let currenciesByCurrencyMap = {};
 
-    return;
-  }
+    currencies.forEach((c) => {
+        if (!!!currenciesByCodeMap[c.code]) {
+            currenciesByCodeMap[c.code] = {
+                countries: [c.country],
+                currency: c.currency,
+                code: c.code,
+                number: c.number,
+            };
 
-  currenciesByCodeMap[c.code].countries.push(c.country);
-});
+            return;
+        }
 
-currencies.forEach((c) => {
-  if (!!!currenciesByNumberMap[c.number]) {
-    currenciesByNumberMap[c.number] = {
-      countries: [c.country],
-      currency: c.currency,
-      code: c.code,
-      number: c.number,
-    };
+        currenciesByCodeMap[c.code].countries.push(c.country);
+    });
 
-    return;
-  }
+    currencies.forEach((c) => {
+        if (!!!currenciesByNumberMap[c.number]) {
+            currenciesByNumberMap[c.number] = {
+                countries: [c.country],
+                currency: c.currency,
+                code: c.code,
+                number: c.number,
+            };
 
-  currenciesByNumberMap[c.number].countries.push(c.country);
-});
+            return;
+        }
 
-currencies.forEach((c) => {
-  if (!!!currenciesByCountryMap[c.country]) {
-    currenciesByCountryMap[c.country] = {
-      countries: currenciesByCodeMap[c.code].countries,
-      currency: c.currency,
-      code: c.code,
-      number: c.number,
-    };
+        currenciesByNumberMap[c.number].countries.push(c.country);
+    });
 
-    return;
-  }
-});
+    currencies.forEach((c) => {
+        if (!!currenciesByCountryMap[c.country]) {
+            currenciesByCountryMap[c.country].currencies.push(c)
+            return;
+        }
 
-currencies.forEach((c) => {
-  if (!!!currenciesByCurrencyMap[c.currency]) {
-    currenciesByCurrencyMap[c.currency] = {
-      countries: [c.country],
-      currency: c.currency,
-      code: c.code,
-      number: c.number,
-    };
+        currenciesByCountryMap[c.country] = {
+            currencies: [c],
+        };
 
-    return;
-  }
+        return;
+    });
 
-  currenciesByCurrencyMap[c.currency].countries.push(c.country);
-});
+    currencies.forEach((c) => {
+        if (!!!currenciesByCurrencyMap[c.currency]) {
+            currenciesByCurrencyMap[c.currency] = {
+                countries: [c.country],
+                currency: c.currency,
+                code: c.code,
+                number: c.number,
+            };
 
-let render = (currenciesMap) => {
-  return Object.keys(currenciesMap).map(
-    (key) => `\`${key}\`: {
-      countries:  []Country{${currenciesMap[key].countries
-        .map((country) => `\`${country}\``)
-        .join(", ")}},
+            return;
+        }
+
+        currenciesByCurrencyMap[c.currency].countries.push(c.country);
+    });
+
+    let renderByCountry =
+        (currenciesMap) => {
+            return Object.keys(currenciesMap).map((key) => `\`${key}\`: {
+                      ${currenciesMap[key].currencies.map(c => {
+                return `{
+                        countries:  Countries{${currenciesByCodeMap[c.code].countries.map((country) => `\`${country}\``).join(', ')}},
+                        currency:   \`${c.currency}\`,
+                        code:       \`${c.code}\`,
+                        number:     \`${c.number}\`,
+                        }`;
+            }).join(`,`)},
+                    }`).join(`,`)
+        };
+
+    let render =
+        (currenciesMap) => {
+            return Object.keys(currenciesMap)
+                .map(
+                    (key) => `\`${key}\`: {
+      countries:  Countries{${
+                        currenciesMap[key]
+                            .countries.map((country) => `\`${country}\``)
+                            .join(', ')}},
       currency:   \`${currenciesMap[key].currency}\`,
       code:       \`${currenciesMap[key].code}\`,
       number:     \`${currenciesMap[key].number}\`,
-    }`
-  ).join(`,
-    `);
-};
+    }`).join(`,
+    `)
+        };
 
-let template = `package currency
+    let template = `package currency
 
 import "fmt"
 
@@ -115,6 +119,18 @@ func (c Country) Validate(_ interface{}) error {
 
 func (c Country) IsSet() bool {
 	return len(string(c)) > 0
+}
+
+type Countries []Country
+
+func (countries Countries) IsCountryIn(country string) bool {
+	for _, c := range countries {
+		if string(c) == country {
+			return true
+		}
+	}
+
+	return false
 }
 
 type Currency string
@@ -160,16 +176,48 @@ func (n Number) IsSet() bool {
 }
 
 type currency struct {
-	countries []Country
+	countries Countries
 	currency  Currency
 	code      Code
 	number    Number
 }
 
+type currencies []currency
+
+func (currencies currencies) IsCurrencyIn(curr string) (currency, bool) {
+	for _, c := range currencies {
+		if string(c.currency) == curr {
+			return c, true
+		}
+	}
+
+	return currency{}, false
+}
+
+func (currencies currencies) IsCodeIn(code string) (currency, bool) {
+	for _, c := range currencies {
+		if string(c.code) == code {
+			return c, true
+		}
+	}
+
+	return currency{}, false
+}
+
+func (currencies currencies) IsNumberIn(number string) (currency, bool) {
+	for _, c := range currencies {
+		if string(c.number) == number {
+			return c, true
+		}
+	}
+
+	return currency{}, false
+}
+
 func (c currency) Currency() Currency   { return c.currency }
 func (c currency) Code() Code           { return c.code }
 func (c currency) Number() Number       { return c.number }
-func (c currency) Countries() []Country { return c.countries }
+func (c currency) Countries() Countries { return c.countries }
 
 var currenciesByCode = map[string]currency{
     ${render(currenciesByCodeMap)},
@@ -179,8 +227,8 @@ var currenciesByNumber = map[string]currency{
   ${render(currenciesByNumberMap)},
 }
 
-var currenciesByCountry = map[string]currency{
-  ${render(currenciesByCountryMap)},
+var currenciesByCountry = map[string][]currency{
+  ${renderByCountry(currenciesByCountryMap)},
 }
 
 var currenciesByCurrency = map[string]currency{
@@ -202,10 +250,90 @@ func ByNumber(number string) (c currency, ok bool) {
 	return
 }
 
-func ByCountry(number string) (c currency, ok bool) {
-	c, ok = currenciesByCountry[number]
+func ByCountry(country string) (c []currency, ok bool) {
+	c, ok = currenciesByCountry[country]
 	return
 }
 `;
 
-console.log(template);
+    return template;
+}
+
+
+let normalizeCurrency = (currency) => {
+    let normalizeCountry;
+
+    normalizeCountry = (country) => {
+        let bracketsFound = false;
+
+        if (country.includes(" (") && country.includes(")")) {
+            bracketsFound = true;
+            let lastIndexOfOpeningBrackets = country.lastIndexOf(" (");
+            let lastIndexOfClosingBrackets = country.lastIndexOf(")");
+            let bracked = country.substring(lastIndexOfOpeningBrackets, lastIndexOfClosingBrackets + 1)
+            country = country.replace(bracked, "");
+
+            for (let nested = true; nested;) {
+                let result = normalizeCountry(country)
+                if (result.bracketsFound) {
+                    country = result.country
+                }
+
+                nested = result.bracketsFound
+            }
+
+        }
+
+        return {country: country, bracketsFound: bracketsFound}
+    }
+
+    let normalizedResult = normalizeCountry(currency.country)
+    if (normalizedResult.bracketsFound) {
+        return {
+            country: normalizedResult.country,
+            currency: currency.currency,
+            code: currency.code,
+            number: currency.number,
+        }
+    }
+
+    return null
+}
+
+xml2js.parseStringPromise(resp.body.toString(), {mergeAttrs: true})
+    .then(result => {
+        return Promise.resolve(result["ISO_4217"]["CcyTbl"][0]["CcyNtry"])
+    })
+    .catch(err => {
+        console.log(err);
+        os.exit(1)
+    })
+    .then(currencies => {
+        let result = currencies.map((row) => {
+            if (!!!(row["Ccy"])) {
+                return
+            }
+
+            return {
+                country: row["CtryNm"][0],
+                currency: typeof row["CcyNm"][0] !== "object" ? row["CcyNm"][0] : row["CcyNm"][0]["_"],
+                code: row["Ccy"][0],
+                number: row["CcyNbr"][0],
+            }
+        });
+
+        result = result.filter(r => !!r).filter(r => !r.country.startsWith("ZZ"));
+
+        let normalizedCountries = [];
+
+        result.forEach(currency => {
+            let normalized = normalizeCurrency(currency)
+            if (!!normalized) {
+                normalizedCountries.push(normalized)
+            }
+        })
+
+
+        return Promise.resolve(result.concat(normalizedCountries))
+    })
+    .then(currencies => Promise.resolve(render(currencies))).then(template => console.log(template));
