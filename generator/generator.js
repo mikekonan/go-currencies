@@ -103,11 +103,23 @@ let render = (currencies) => {
     `)
         };
 
-    let template = `package currency
+    let template = `// This code is auto-generated; DO NOT EDIT.
+package currency
 
-import "fmt"
+import (
+	"database/sql/driver"
+	"fmt"
+)
 
 type Country string
+
+func (c Country) Value() (value driver.Value, err error) {
+	if err = c.Validate(nil); err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
 
 func (c Country) Validate(_ interface{}) error {
 	if _, ok := ByCountry(string(c)); !ok {
@@ -135,6 +147,14 @@ func (countries Countries) IsCountryIn(country string) bool {
 
 type Currency string
 
+func (c Currency) Value() (value driver.Value, err error) {
+	if err = c.Validate(nil); err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
 func (c Currency) Validate(_ interface{}) error {
 	if _, ok := ByCurrency(string(c)); !ok {
 		return fmt.Errorf("'%s' is not valid ISO-4217 currency", c)
@@ -149,6 +169,14 @@ func (c Currency) IsSet() bool {
 
 type Code string
 
+func (c Code) Value() (value driver.Value, err error) {
+	if err = c.Validate(nil); err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
 func (c Code) Validate(_ interface{}) error {
 	if _, ok := ByCode(string(c)); !ok {
 		return fmt.Errorf("'%s' is not valid ISO-4217 code", c)
@@ -162,6 +190,14 @@ func (c Code) IsSet() bool {
 }
 
 type Number string
+
+func (n Number) Value() (value driver.Value, err error) {
+	if err = n.Validate(nil); err != nil {
+		return nil, err
+	}
+
+	return n, nil
+}
 
 func (n Number) Validate(_ interface{}) error {
 	if _, ok := ByNumber(string(n)); !ok {
@@ -227,7 +263,7 @@ var currenciesByNumber = map[string]currency{
   ${render(currenciesByNumberMap)},
 }
 
-var currenciesByCountry = map[string][]currency{
+var currenciesByCountry = map[string]currencies{
   ${renderByCountry(currenciesByCountryMap)},
 }
 
