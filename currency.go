@@ -87,7 +87,7 @@ func (currency Currency) Value() (value driver.Value, err error) {
 	return currency.String(), nil
 }
 
-//UnmarshalJSON unmarshall implementation for Country
+//UnmarshalJSON unmarshall implementation for Currency
 func (currency *Currency) UnmarshalJSON(data []byte) error {
 	var str string
 	if err := json.Unmarshal(data, &str); err != nil {
@@ -236,6 +236,7 @@ type currency struct {
 
 type currencies []currency
 
+//IsCurrencyIn checks is currency in
 func (currencies currencies) IsCurrencyIn(curr string) (currency, bool) {
 	for _, c := range currencies {
 		if string(c.currency) == curr {
@@ -246,6 +247,7 @@ func (currencies currencies) IsCurrencyIn(curr string) (currency, bool) {
 	return currency{}, false
 }
 
+//IsCurrencyIn checks is code in
 func (currencies currencies) IsCodeIn(code string) (currency, bool) {
 	for _, c := range currencies {
 		if string(c.code) == code {
@@ -256,6 +258,7 @@ func (currencies currencies) IsCodeIn(code string) (currency, bool) {
 	return currency{}, false
 }
 
+//IsCurrencyIn checks is number in
 func (currencies currencies) IsNumberIn(number string) (currency, bool) {
 	for _, c := range currencies {
 		if string(c.number) == number {
@@ -266,31 +269,43 @@ func (currencies currencies) IsNumberIn(number string) (currency, bool) {
 	return currency{}, false
 }
 
-func (c currency) Currency() Currency   { return c.currency }
-func (c currency) Code() Code           { return c.code }
-func (c currency) Number() Number       { return c.number }
+//Currency returns Currency
+func (c currency) Currency() Currency { return c.currency }
+
+//Code returns Code
+func (c currency) Code() Code { return c.code }
+
+//Number returns Number
+func (c currency) Number() Number { return c.number }
+
+//Countries returns Countries
 func (c currency) Countries() Countries { return c.countries }
 
+//ByCodeStr lookup for currency type by code
 func ByCodeStr(code string) (c currency, ok bool) {
 	c, ok = currenciesByCode[code]
 	return
 }
 
+//ByCurrencyStr lookup for currency type by currency
 func ByCurrencyStr(currency string) (c currency, ok bool) {
 	c, ok = currenciesByCurrency[currency]
 	return
 }
 
+//ByNumberStr lookup for currency type by number
 func ByNumberStr(number string) (c currency, ok bool) {
 	c, ok = currenciesByNumber[number]
 	return
 }
 
-func ByCountryStr(country string) (c []currency, ok bool) {
+//ByCountryStr lookup for currencies type by country
+func ByCountryStr(country string) (c currencies, ok bool) {
 	c, ok = currenciesByCountry[country]
 	return
 }
 
+//ByCodeStrErr lookup for currency type by code
 func ByCodeStrErr(code string) (c currency, err error) {
 	var ok bool
 	c, ok = currenciesByCode[code]
@@ -302,6 +317,7 @@ func ByCodeStrErr(code string) (c currency, err error) {
 	return
 }
 
+//ByCurrencyStrErr lookup for currency type by currency
 func ByCurrencyStrErr(currencyStr string) (c currency, err error) {
 	var ok bool
 	c, ok = currenciesByCurrency[currencyStr]
@@ -313,6 +329,7 @@ func ByCurrencyStrErr(currencyStr string) (c currency, err error) {
 	return
 }
 
+//ByNumberStrErr lookup for currency type by number
 func ByNumberStrErr(number string) (c currency, err error) {
 	var ok bool
 	c, ok = currenciesByNumber[number]
@@ -324,7 +341,8 @@ func ByNumberStrErr(number string) (c currency, err error) {
 	return
 }
 
-func ByCountryStrErr(country string) (c []currency, err error) {
+//ByCountryStrErr lookup for currencies type by country
+func ByCountryStrErr(country string) (c currencies, err error) {
 	var ok bool
 	c, ok = currenciesByCountry[country]
 
@@ -335,26 +353,31 @@ func ByCountryStrErr(country string) (c []currency, err error) {
 	return
 }
 
+//ByCode lookup for currency type by code
 func ByCode(code Code) (c currency, ok bool) {
 	c, ok = currenciesByCode[code.String()]
 	return
 }
 
+//ByCurrency lookup for currency type by currency
 func ByCurrency(currency Currency) (c currency, ok bool) {
 	c, ok = currenciesByCurrency[currency.String()]
 	return
 }
 
+//ByNumber lookup for currency type by number
 func ByNumber(number Number) (c currency, ok bool) {
 	c, ok = currenciesByNumber[number.String()]
 	return
 }
 
-func ByCountry(country Country) (c []currency, ok bool) {
+//ByCountry lookup for currency type by country
+func ByCountry(country Country) (c currencies, ok bool) {
 	c, ok = currenciesByCountry[country.String()]
 	return
 }
 
+//ByCodeErr lookup for currency type by code
 func ByCodeErr(code Code) (c currency, err error) {
 	var ok bool
 	c, ok = currenciesByCode[code.String()]
@@ -366,6 +389,7 @@ func ByCodeErr(code Code) (c currency, err error) {
 	return
 }
 
+//ByCurrencyErr lookup for currencies type by code
 func ByCurrencyErr(currencyStr Currency) (c currency, err error) {
 	var ok bool
 	c, ok = currenciesByCurrency[currencyStr.String()]
@@ -377,6 +401,7 @@ func ByCurrencyErr(currencyStr Currency) (c currency, err error) {
 	return
 }
 
+//ByNumberErr lookup for currencies type by number
 func ByNumberErr(number Number) (c currency, err error) {
 	var ok bool
 	c, ok = currenciesByNumber[number.String()]
@@ -388,7 +413,8 @@ func ByNumberErr(number Number) (c currency, err error) {
 	return
 }
 
-func ByCountryErr(country Country) (c []currency, err error) {
+//ByCountryErr lookup for currencies type by country
+func ByCountryErr(country Country) (c currencies, err error) {
 	var ok bool
 	c, ok = currenciesByCountry[country.String()]
 
