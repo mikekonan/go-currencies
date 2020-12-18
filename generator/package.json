@@ -5,7 +5,7 @@
   "main": "generator.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate": "node generator.js > ../currency.go && go fmt ../currency.go"
+    "generate": "node generator.js > ../currency_gen.go && go fmt ../currency_gen.go"
   },
   "author": "MikeKonan",
   "license": "MIT",
