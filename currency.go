@@ -237,7 +237,7 @@ type currency struct {
 type currencies []currency
 
 //IsCurrencyIn checks is currency in
-func (currencies currencies) IsCurrencyIn(curr string) (currency, bool) {
+func (currencies currencies) CurrencyByCurrency(curr string) (currency, bool) {
 	for _, c := range currencies {
 		if string(c.currency) == curr {
 			return c, true
@@ -248,7 +248,7 @@ func (currencies currencies) IsCurrencyIn(curr string) (currency, bool) {
 }
 
 //IsCurrencyIn checks is code in
-func (currencies currencies) IsCodeIn(code string) (currency, bool) {
+func (currencies currencies) CurrencyByCode(code string) (currency, bool) {
 	for _, c := range currencies {
 		if string(c.code) == code {
 			return c, true
@@ -259,7 +259,7 @@ func (currencies currencies) IsCodeIn(code string) (currency, bool) {
 }
 
 //IsCurrencyIn checks is number in
-func (currencies currencies) IsNumberIn(number string) (currency, bool) {
+func (currencies currencies) CurrencyByNumber(number string) (currency, bool) {
 	for _, c := range currencies {
 		if string(c.number) == number {
 			return c, true
