@@ -1,5 +1,7 @@
 const request = require('sync-request');
 const xml2js = require('xml2js');
+const yaml = require('yaml');
+const fs = require('fs');
 
 let resp = request('GET', 'https://www.currency-iso.org/dam/downloads/lists/list_one.xml');
 
@@ -204,3 +206,59 @@ xml2js.parseStringPromise(resp.body.toString(), {mergeAttrs: true})
         return Promise.resolve(result.concat(normalizedCountries))
     })
     .then(currencies => Promise.resolve(render(currencies))).then(template => console.log(template));
+
+// generate openapi yaml
+xml2js.parseStringPromise(resp.body.toString(), {mergeAttrs: true})
+    .then(result => {
+        return Promise.resolve(result["ISO_4217"]["CcyTbl"][0]["CcyNtry"])
+    })
+    .catch(err => {
+        console.log(err);
+        os.exit(1)
+    })
+    .then(currencies => {
+        let result = currencies.map((row) => {
+            if (!!!(row["Ccy"])) {
+                return
+            }
+
+            return {
+                country: row["CtryNm"][0],
+                currency: typeof row["CcyNm"][0] !== "object" ? row["CcyNm"][0] : row["CcyNm"][0]["_"],
+                code: row["Ccy"][0],
+                number: row["CcyNbr"][0],
+            }
+        });
+        result = result.filter(r => !!r).filter(r => !r.country.startsWith("ZZ"));
+
+
+        const spec = {
+            openapi: '3.0.0',
+            components: {
+                schemas: {
+                    CurrencyCode: {
+                        example: "EUR",
+                        type: "string",
+                        format: "iso4217-currency-code",
+                        enum: [...new Set(result.map(currency => currency.code))],
+                    },
+                    CurrencyName: {
+                        example: "Euro",
+                        type: "string",
+                        enum: [...new Set(result.map(currency => currency.currency))],
+                    },
+                    CurrencyCountry: {
+                        example: "PUERTO RICO",
+                        type: "string",
+                        enum: [...new Set(result.map(currency => currency.country))],
+                    },
+                    CurrencyNumber: {
+                        example: "840",
+                        type: "string",
+                        enum: [...new Set(result.map(currency => currency.number))],
+                    }
+                }
+            }
+        }
+        fs.writeFileSync("../iso-4217-oas.yaml", yaml.stringify(spec))
+    })
