@@ -175,7 +175,7 @@ components:
         - YER
         - ZMW
         - ZWL
-      x-go-type: github.com/mikekonan/go-currencies/Code
+      x-go-type: github.com/mikekonan/go-currencies.Code
     CurrencyName:
       example: Euro
       type: string
@@ -349,7 +349,7 @@ components:
         - Yemeni Rial
         - Zambian Kwacha
         - Zimbabwe Dollar
-      x-go-type: github.com/mikekonan/go-currencies/Currency
+      x-go-type: github.com/mikekonan/go-currencies.Currency
     CurrencyCountry:
       example: PUERTO RICO
       type: string
@@ -604,7 +604,7 @@ components:
         - YEMEN
         - ZAMBIA
         - ZIMBABWE
-      x-go-type: github.com/mikekonan/go-currencies/Country
+      x-go-type: github.com/mikekonan/go-currencies.Country
     CurrencyNumber:
       example: "840"
       type: string
